@@ -24,14 +24,27 @@ def display_board(board):
     return board
 
 
+def make_list_of_free_fields(board):
+    # The function browses the board and builds a list of all the free squares;
+    free_fields = []
+
+    for row in board:  # Iterate over each row in the board
+        for col in row:  # Iterate over each column in the row
+            if col != 'X' and col != 'O':  # Check if the cell is not occupied
+                free_fields.append(col)  # Append the free field to the list
+    if len(free_fields) == 0:
+        print("It's a Draw")
+        return None
+
+    return free_fields # Return the list of free fields
+
+
 def enter_move(board):
     valid_input = False
-    global move_count
 
     while not valid_input:
         try:
-            print("Enter your move: ")#
-            move = 4  # Example move, replace with input("Enter your move: ")
+            move = int(input("Enter your move: "))  # Example move, replace with input("Enter your move: ")
             if move < 1 or move > 9: #limit user input to the boards numbers
                 raise ValueError("Invalid entry! Please enter a number between 1 and 9.")
             
@@ -41,8 +54,7 @@ def enter_move(board):
                     for col in range(len(board[row])):
                         if move == board[row][col]: #check if the entered move is equal to a free field at place [row][col] ex. [1][1], which would be 4
                             # Update the value at the specified row and column indices
-                            board[row][col] = 'O'
-                            move_count += 1           
+                            board[row][col] = 'O'         
                             valid_input = True
                             display_board(board)
                             return board  # Return the updated board
@@ -52,37 +64,9 @@ def enter_move(board):
             print("Wrong Input")
 
 
-
-def make_list_of_free_fields(board):
-    # The function browses the board and builds a list of all the free squares;
-    free_fields = []
-
-    for row in board:  # Iterate over each row in the board
-        for col in row:  # Iterate over each column in the row
-            if col != 'X' and col != 'O':  # Check if the cell is not occupied
-                free_fields.append(col)  # Append the free field to the list
-
-    return free_fields # Return the list of free fields
-
-def victory_for(board, sign):
-    counter = 0
-    # The function analyzes the board's status in order to check if
-    for row in range(len(board)):
-        for col in range(len(board[row])):
-            if sign == board[row][col]:
-                counter += 1
-                if counter == 3:
-                    winner = True
-                    return winner
-                continue
-
-    # the player using 'O's or 'X's has won the game
-    return print(f"{sign} * {counter}")
-
 def draw_move(board):
     # The function draws the computer's move and updates the board.
     valid_input = False
-    global move_count_cpu
 
     while not valid_input:
         move = randint(1,9)
@@ -93,12 +77,55 @@ def draw_move(board):
                     if move == board[row][col]: #check if the entered move is equal to a free field at place [row][col] ex. [1][1], which would be 4
                         # Update the value at the specified row and column indices
                         board[row][col] = 'X'
-                        move_count_cpu += 1
                         print(f"CPU entered: {move}")                
                         valid_input = True
                         display_board(board)
 
     return board
+
+
+def victory_for(board, sign):
+    # Analyzes the board's status in order to check if a win is possible
+    if (sign != board[0][0] and
+        sign != board[1][1] and
+        sign != board[2][2]):         
+        return None
+    
+    # Check row
+    for row in range(len(board)):
+        counter = 0
+        if sign != board[row][row]:
+            continue
+        else:
+            for ele in board[row]:
+                if sign == ele:
+                    counter += 1
+                    if counter == 3:
+                        return True
+
+    # Check col
+    if sign in board[0]:
+        index = board[0].index(sign)
+        counter = 0
+        for col in range(len(board)): 
+            if sign == board[col][index]:
+                counter += 1
+                if counter == 3:
+                    return True
+            
+    # Check diagonal
+    if ('X' == board[0][0] and
+        'X' == board[1][1] and
+        'X' == board[2][2]):
+        return True
+    
+    # Check anti-diagonal
+    if ('X' == board[0][2] and
+        'X' == board[1][1] and
+        'X' == board[2][0]):
+        return True
+
+
 
 board = [
   [1, 2, 3],
@@ -106,14 +133,31 @@ board = [
   [7, 8, 9]
 ]
 
-free_fields = make_list_of_free_fields(board)
-move_count = 0
-move_count_cpu = 1
-winner = False
 sign = 'X'
+free_fields = make_list_of_free_fields(board)
+winner = False
 
-victory_for(board, sign)
 display_board(board)
-enter_move(board)
-draw_move(board)
+while not winner:
+
+    enter_move(board)
+    sign = 'O'
+
+    if victory_for(board, sign):
+        print("You Won!")
+        winner = True
+        break
+
+    make_list_of_free_fields(board)
+
+    draw_move(board)
+    sign = 'X'
+
+    if victory_for(board, sign):
+        print("You Lost :( ")
+        winner = True
+        break
+
+    make_list_of_free_fields(board)
+
 
